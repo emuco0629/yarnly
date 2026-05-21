@@ -77,9 +77,11 @@ export function useNoroshi() {
     ])
     s.globalIdx = startIdx + n
 
-    // Queue = timing entries only (pushCount increments)
-    const maxVis       = Math.floor((window.innerHeight - 64 - 90 - 24 - 56) / 22)
-    const virtualSteps = Math.max(maxVis + 6, 10)
+    // Use screen.height (unaffected by keyboard/safe-area) so virtualSteps are always
+    // sufficient even when innerHeight shrinks while keyboard is open during typing.
+    // Constants match WalkingScene layout: GROUND_H(88)+YARNLY_H(58)+CHAR_GAP(30)+CEILING_Y(48)=224, CHAR_SP=20
+    const stepsNeeded  = Math.ceil((window.screen.height - 224) / 20)
+    const virtualSteps = Math.max(stepsNeeded + 8, 10)
     const textEndAt    = startAt + n * FLOW_SPEED_MS
 
     const newItems = []

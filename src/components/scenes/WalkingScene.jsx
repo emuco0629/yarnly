@@ -16,7 +16,7 @@ const CHAR_GAP      = 30
 const CEILING_Y     = 48
 const CEIL_PAD      = 32
 const CHAR_PX       = 14   // matches 14px ceiling font
-const CEIL_CHAR_TOP = 10
+const CEIL_CHAR_TOP = 20
 const FONT_HALF     = 7    // half of 14px noroshi font — for thread endpoint centering
 
 export default function WalkingScene({ color, onHome }) {
@@ -96,7 +96,7 @@ export default function WalkingScene({ color, onHome }) {
   // Y endpoint is clamped to CEILING_Y so the thread never extends above the ceiling overlay.
   const recentChars = [...posChars]
     .sort((a, b) => b.idx - a.idx)
-    .slice(0, 4)
+    .slice(0, 2)
 
   const threadD = (() => {
     if (recentChars.length === 0) return ''
@@ -130,7 +130,7 @@ export default function WalkingScene({ color, onHome }) {
           <path
             d={threadD}
             stroke={color}
-            strokeWidth="1.5"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"

@@ -13,7 +13,7 @@ export default function CeilingText({ chars, color }) {
           style={{
             color,
             left: c.targetX,
-            top:  c.targetY,
+            '--char-top':  `${c.targetY}px`,
             '--from-dx': `${(c.entryX - c.targetX).toFixed(1)}px`,
           }}
         >
