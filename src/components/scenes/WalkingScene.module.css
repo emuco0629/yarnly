@@ -1,0 +1,43 @@
+.scene {
+  position: relative;
+  width: 100dvw;
+  height: 100dvh;
+  background: #f5f0eb;
+  overflow: hidden;
+}
+
+.ground {
+  position: absolute;
+  bottom: 88px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.07);
+}
+
+/* left is set via inline style; transition smooths the walk-left movement */
+.character {
+  position: absolute;
+  bottom: 88px;
+  transition: left 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Slides in from off-screen right using transform (left stays at target) */
+.entering {
+  animation: walkIn 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes walkIn {
+  from { transform: translateX(calc(65dvw + 100px)); }
+  to   { transform: none; }
+}
+
+/* Gentle vertical bob while walking in place */
+.walking {
+  animation: walkBob 0.44s ease-in-out infinite alternate;
+}
+
+@keyframes walkBob {
+  from { transform: translateY(0px); }
+  to   { transform: translateY(-2.5px); }
+}

@@ -1,0 +1,27 @@
+.anchor {
+  position: absolute;
+  font-size: 14px;
+  width: 1em;           /* 14px — constrains centering */
+  text-align: center;
+  transform: translateX(-50%);  /* center glyph on the x coordinate */
+  /* Smooth upward + horizontal shift (top: rising, left: ceiling curve) */
+  transition: top 0.12s ease, left 0.12s ease;
+}
+
+.glyph {
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1;
+  display: block;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
+  animation: popIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.2); }
+  to   { opacity: 1; transform: scale(1); }
+}

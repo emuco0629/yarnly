@@ -1,0 +1,103 @@
+/* ヒントテキスト（縦書き）— 糸を透明化した上に薄い背景で視認性確保 */
+.textOnString {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+  background: #f5f0eb;
+  padding: 4px 3px;
+  border-radius: 4px;
+}
+
+.textChar {
+  display: inline;
+  opacity: 0;
+  animation: charFadeIn 0.18s ease forwards;
+}
+
+@keyframes charFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* 目オーバーレイ */
+.eyesOverlay {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 7px;
+  pointer-events: none;
+  z-index: 2;
+  animation: eyeAppear 0.15s ease forwards;
+}
+
+@keyframes eyeAppear {
+  from { opacity: 0; transform: translateX(-50%) scale(0.4); }
+  to   { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+
+.eye {
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.15);
+}
+
+.eye::after {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: #1a1a1a;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* 揺れアニメーション（数珠の暖簾）*/
+@keyframes ballSway {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(var(--sway-amp, 6px)); }
+  60%  { transform: translateX(calc(-1 * var(--sway-amp, 6px))); }
+  85%  { transform: translateX(calc(var(--sway-amp, 6px) * 0.25)); }
+  100% { transform: translateX(0); }
+}
+
+.swaying {
+  animation: ballSway 1.1s ease-in-out infinite;
+  animation-delay: var(--sway-delay, 0s);
+}
+
+/* 糸が切れるアニメーション */
+.stringCutting {
+  transform-origin: top center;
+  animation: stringCut 0.38s ease-in forwards;
+}
+
+@keyframes stringCut {
+  0%   { transform: scaleY(1); opacity: 1; }
+  60%  { transform: scaleY(0.55); opacity: 0.7; }
+  100% { transform: scaleY(0); opacity: 0; }
+}
+
+/* 玉が落下するアニメーション */
+.ballFalling {
+  animation: ballDrop 0.38s ease-in forwards;
+}
+
+@keyframes ballDrop {
+  0%   { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(55dvh) scale(0.9); opacity: 0.2; }
+}
