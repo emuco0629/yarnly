@@ -16,7 +16,9 @@ const CHAR_GAP      = 30
 const CEILING_Y     = 14   // canvas-relative threshold; chars above this enter the ceiling div
 const CEIL_PAD      = 32
 const CHAR_PX       = 14   // matches 14px ceiling font
-const CEIL_CHAR_TOP = 20
+const CEIL_CHAR_TOP = 10   // top of first ceiling line (below safe-area)
+const CEIL_LINE_H   = 24   // px between ceiling text lines
+const CEIL_LINES    = 5    // number of ceiling lines to render
 const FONT_HALF     = 7    // half of 14px noroshi font — for thread endpoint centering
 
 export default function WalkingScene({ color, onHome }) {
@@ -75,15 +77,16 @@ export default function WalkingScene({ color, onHome }) {
   const visChars  = posChars.filter(c => c.y >= CEILING_Y)
   const ceilChars = posChars.filter(c => c.y < CEILING_Y)
 
-  // Ceiling: current partial line only
-  const allCeilStr           = ceilChars.map(c => c.char).join('')
-  const completedLines       = Math.floor(allCeilStr.length / lineLen)
-  const currentLineCeilChars = ceilChars.slice(completedLines * lineLen)
-  const ceilDisplayChars     = currentLineCeilChars.map((c, i) => ({
+  // Ceiling: show last CEIL_LINES lines
+  const allCeilStr     = ceilChars.map(c => c.char).join('')
+  const completedLines = Math.floor(allCeilStr.length / lineLen)
+  const startLine      = Math.max(0, completedLines - (CEIL_LINES - 1))
+  const displayChars   = ceilChars.slice(startLine * lineLen)
+  const ceilDisplayChars = displayChars.map((c, i) => ({
     ...c,
     entryX:  c.x,
-    targetX: CEIL_PAD / 2 + i * CHAR_PX,
-    targetY: CEIL_CHAR_TOP,
+    targetX: CEIL_PAD / 2 + (i % lineLen) * CHAR_PX,
+    targetY: CEIL_CHAR_TOP + Math.floor(i / lineLen) * CEIL_LINE_H,
   }))
 
   // Thread: simple M...L path from Yarnly's head through centers of last 3–4 chars.
@@ -116,7 +119,7 @@ export default function WalkingScene({ color, onHome }) {
       <CeilingText chars={ceilDisplayChars} color={color} />
 
       <div ref={sceneRef} className={styles.canvas}>
-        <HomeButton onHome={onHome} />
+        <HomeButton onHome={onHome} color={color} />
 
         {/* Thread: head → centers of last 3–4 chars, straight lines only */}
         {threadD && (

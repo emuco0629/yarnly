@@ -2,20 +2,17 @@
   flex-shrink: 0;
   position: relative;
   width: 100%;
-  height: calc(48px + env(safe-area-inset-top, 0px));
+  height: calc(150px + env(safe-area-inset-top, 0px));
   overflow: hidden;
-  background: linear-gradient(
-    to bottom,
-    rgba(245, 240, 235, 0.97) 0%,
-    rgba(245, 240, 235, 0.82) 65%,
-    rgba(245, 240, 235, 0) 100%
-  );
   pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 60%, transparent 100%);
 }
 
 .char {
   position: absolute;
-  top: calc(var(--char-top, 20px) + env(safe-area-inset-top, 0px));
+  top: calc(var(--char-top, 10px) + env(safe-area-inset-top, 0px));
+  transition: top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   font-family: 'Zen Kaku Gothic New', sans-serif;
   font-size: 14px;
   font-weight: 400;
