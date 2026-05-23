@@ -2,7 +2,7 @@
   flex-shrink: 0;
   position: relative;
   width: 100%;
-  height: calc(150px + env(safe-area-inset-top, 0px));
+  /* height set via inline style (dynamic) */
   overflow: hidden;
   pointer-events: none;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 60%, transparent 100%);

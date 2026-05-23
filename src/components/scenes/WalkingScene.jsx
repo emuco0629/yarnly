@@ -18,7 +18,8 @@ const CEIL_PAD      = 32
 const CHAR_PX       = 14   // matches 14px ceiling font
 const CEIL_CHAR_TOP = 10   // top of first ceiling line (below safe-area)
 const CEIL_LINE_H   = 24   // px between ceiling text lines
-const CEIL_LINES    = 5    // number of ceiling lines to render
+const CEIL_LINES    = 5    // max ceiling lines to render
+const CEIL_FADE_PAD = 24   // px at bottom for mask fade
 const FONT_HALF     = 7    // half of 14px noroshi font — for thread endpoint centering
 
 export default function WalkingScene({ color, onHome }) {
@@ -77,7 +78,7 @@ export default function WalkingScene({ color, onHome }) {
   const visChars  = posChars.filter(c => c.y >= CEILING_Y)
   const ceilChars = posChars.filter(c => c.y < CEILING_Y)
 
-  // Ceiling: show last CEIL_LINES lines
+  // Ceiling: show last CEIL_LINES lines, size area to actual line count
   const allCeilStr     = ceilChars.map(c => c.char).join('')
   const completedLines = Math.floor(allCeilStr.length / lineLen)
   const startLine      = Math.max(0, completedLines - (CEIL_LINES - 1))
@@ -88,6 +89,12 @@ export default function WalkingScene({ color, onHome }) {
     targetX: CEIL_PAD / 2 + (i % lineLen) * CHAR_PX,
     targetY: CEIL_CHAR_TOP + Math.floor(i / lineLen) * CEIL_LINE_H,
   }))
+
+  const ceilLineCount = displayChars.length > 0
+    ? Math.ceil(displayChars.length / lineLen)
+    : 0
+  // Minimum height keeps the home button contained; expand per line of text
+  const ceilH = Math.max(56, CEIL_CHAR_TOP + ceilLineCount * CEIL_LINE_H + CEIL_FADE_PAD)
 
   // Thread: simple M...L path from Yarnly's head through centers of last 3–4 chars.
   // Use posChars (not visChars) so the thread stays visible even when accumulated
@@ -116,7 +123,7 @@ export default function WalkingScene({ color, onHome }) {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className={styles.layout} style={{ height: viewH }}>
-      <CeilingText chars={ceilDisplayChars} color={color} />
+      <CeilingText chars={ceilDisplayChars} color={color} height={ceilH} />
 
       <div ref={sceneRef} className={styles.canvas}>
         <HomeButton onHome={onHome} color={color} />
