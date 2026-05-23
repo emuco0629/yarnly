@@ -1,11 +1,9 @@
 .ceiling {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  /* extend coverage into the notch / status-bar safe area */
+  flex-shrink: 0;
+  position: relative;
+  width: 100%;
   height: calc(48px + env(safe-area-inset-top, 0px));
+  overflow: hidden;
   background: linear-gradient(
     to bottom,
     rgba(245, 240, 235, 0.97) 0%,
@@ -17,7 +15,6 @@
 
 .char {
   position: absolute;
-  /* offset by safe-area so text sits below the notch / status bar */
   top: calc(var(--char-top, 20px) + env(safe-area-inset-top, 0px));
   font-family: 'Zen Kaku Gothic New', sans-serif;
   font-size: 14px;
@@ -25,7 +22,6 @@
   letter-spacing: 0.08em;
   line-height: 1.6;
   white-space: nowrap;
-  /* slide from vertical column position (--from-dx) to text position */
   animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 

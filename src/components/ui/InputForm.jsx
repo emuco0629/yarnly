@@ -18,27 +18,20 @@ export default function InputForm({ onSubmit }) {
     el.style.height = `${Math.min(Math.max(el.scrollHeight, minH), maxH)}px`
   }, [text])
 
-  // Keep form above keyboard using visualViewport API
+  // Slide form above keyboard without touching layout height
   useEffect(() => {
     const vv = window.visualViewport
     if (!vv) return
     const el = wrapRef.current
     if (!el) return
 
-    function update() {
-      // How far the visual viewport's bottom is from the layout viewport's bottom
-      const offset = window.innerHeight - vv.offsetTop - vv.height
-      el.style.bottom = `${Math.max(0, offset)}px`
+    const onResize = () => {
+      const keyboardH = window.innerHeight - vv.height
+      el.style.transform = `translateY(-${Math.max(0, keyboardH)}px)`
     }
 
-    vv.addEventListener('resize', update)
-    vv.addEventListener('scroll', update)
-    update()
-
-    return () => {
-      vv.removeEventListener('resize', update)
-      vv.removeEventListener('scroll', update)
-    }
+    vv.addEventListener('resize', onResize)
+    return () => vv.removeEventListener('resize', onResize)
   }, [])
 
   function submit() {

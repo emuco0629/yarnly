@@ -8,12 +8,12 @@ import { useNoroshi } from '../../hooks/useNoroshi'
 import styles from './WalkingScene.module.css'
 
 // Layout constants (px)
-const GROUND_H      = 88
+const GROUND_H      = 24   // bottom margin within canvas area (InputForm is now a separate flex row)
 const YARNLY_H      = 58
 const YARNLY_HALF   = 26
 const CHAR_SP       = 20
 const CHAR_GAP      = 30
-const CEILING_Y     = 48
+const CEILING_Y     = 14   // canvas-relative threshold; chars above this enter the ceiling div
 const CEIL_PAD      = 32
 const CHAR_PX       = 14   // matches 14px ceiling font
 const CEIL_CHAR_TOP = 20
@@ -24,26 +24,22 @@ export default function WalkingScene({ color, onHome }) {
   const [viewportW, setViewportW] = useState(
     typeof window !== 'undefined' ? window.innerWidth  : 800
   )
-  const [viewportH, setViewportH] = useState(
+  // Fixed on mount — never updated by keyboard open/close
+  const [viewH, setViewH] = useState(
     typeof window !== 'undefined' ? window.innerHeight : 800
   )
   const sceneRef = useRef(null)
   const { chars, pushCount, addText, isFlowing } = useNoroshi()
 
   useEffect(() => {
-    function update() {
+    // Capture layout height once. Only window.resize (orientation change) updates width.
+    // visualViewport.resize (keyboard) is intentionally excluded to prevent layout jitter.
+    setViewH(window.innerHeight)
+    function onOrientationChange() {
       setViewportW(window.innerWidth)
-      // Use actual scene offsetHeight so 100dvh ≠ window.innerHeight on mobile is handled
-      setViewportH(sceneRef.current?.offsetHeight ?? window.innerHeight)
     }
-    window.addEventListener('resize', update)
-    // Fires when keyboard shows/hides on mobile
-    window.visualViewport?.addEventListener('resize', update)
-    update() // Measure after mount
-    return () => {
-      window.removeEventListener('resize', update)
-      window.visualViewport?.removeEventListener('resize', update)
-    }
+    window.addEventListener('resize', onOrientationChange)
+    return () => window.removeEventListener('resize', onOrientationChange)
   }, [])
 
   useEffect(() => {
@@ -59,7 +55,7 @@ export default function WalkingScene({ color, onHome }) {
 
   // ── Position calculation ──────────────────────────────────────────────────
   const sceneW       = sceneRef.current?.offsetWidth  ?? viewportW
-  const sceneH       = sceneRef.current?.offsetHeight ?? viewportH
+  const sceneH       = sceneRef.current?.offsetHeight ?? viewH
   const yarnlyX      = sceneW * 0.70
   const headY        = sceneH - GROUND_H - YARNLY_H
   const threadStartY = headY - CHAR_GAP
@@ -116,39 +112,42 @@ export default function WalkingScene({ color, onHome }) {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div ref={sceneRef} className={styles.scene}>
-      <HomeButton onHome={onHome} />
+    <div className={styles.layout} style={{ height: viewH }}>
       <CeilingText chars={ceilDisplayChars} color={color} />
 
-      {/* Thread: head → centers of last 3–4 chars, straight lines only */}
-      {threadD && (
-        <svg style={{
-          position: 'absolute', inset: 0,
-          width: '100%', height: '100%',
-          overflow: 'visible', pointerEvents: 'none', zIndex: 4,
-        }}>
-          <path
-            d={threadD}
-            stroke={color}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-            opacity="0.35"
-            style={{ filter: 'blur(0.5px)' }}
-          />
-        </svg>
-      )}
+      <div ref={sceneRef} className={styles.canvas}>
+        <HomeButton onHome={onHome} />
 
-      <NoroshiCanvas chars={visChars} color={color} />
+        {/* Thread: head → centers of last 3–4 chars, straight lines only */}
+        {threadD && (
+          <svg style={{
+            position: 'absolute', inset: 0,
+            width: '100%', height: '100%',
+            overflow: 'visible', pointerEvents: 'none', zIndex: 4,
+          }}>
+            <path
+              d={threadD}
+              stroke={color}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+              opacity="0.35"
+              style={{ filter: 'blur(0.5px)' }}
+            />
+          </svg>
+        )}
 
-      <div className={styles.ground} />
+        <NoroshiCanvas chars={visChars} color={color} />
 
-      <div
-        className={`${styles.character} ${animClass}`}
-        style={{ left: `calc(70% - ${YARNLY_HALF}px)` }}
-      >
-        <Yarnly color={color} action={yarnlyAction} size={YARNLY_H} />
+        <div className={styles.ground} />
+
+        <div
+          className={`${styles.character} ${animClass}`}
+          style={{ left: `calc(70% - ${YARNLY_HALF}px)` }}
+        >
+          <Yarnly color={color} action={yarnlyAction} size={YARNLY_H} />
+        </div>
       </div>
 
       <InputForm onSubmit={handleSubmit} />

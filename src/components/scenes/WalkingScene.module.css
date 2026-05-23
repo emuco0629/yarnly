@@ -1,14 +1,22 @@
-.scene {
-  position: relative;
+/* Outer flex column — height is fixed in JS to avoid iOS keyboard jitter */
+.layout {
+  display: flex;
+  flex-direction: column;
   width: 100dvw;
-  height: 100dvh;
   background: #f5f0eb;
+}
+
+/* Canvas area: grows to fill remaining space */
+.canvas {
+  flex: 1;
+  min-height: 0;
+  position: relative;
   overflow: hidden;
 }
 
 .ground {
   position: absolute;
-  bottom: 88px;
+  bottom: 24px;
   left: 0;
   right: 0;
   height: 1px;
@@ -18,7 +26,7 @@
 /* left is set via inline style; transition smooths the walk-left movement */
 .character {
   position: absolute;
-  bottom: 88px;
+  bottom: 24px;
   transition: left 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
