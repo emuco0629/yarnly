@@ -5,6 +5,7 @@ import CeilingText from '../ui/CeilingText'
 import HomeButton from '../ui/HomeButton'
 import InputForm from '../ui/InputForm'
 import { useNoroshi } from '../../hooks/useNoroshi'
+import { useEncounter } from '../../hooks/useEncounter'
 import styles from './WalkingScene.module.css'
 import bgImg from '../../assets/yarnlyback1.png'
 
@@ -32,8 +33,14 @@ export default function WalkingScene({ color, onHome }) {
   const [viewH, setViewH] = useState(
     typeof window !== 'undefined' ? window.innerHeight : 800
   )
-  const sceneRef = useRef(null)
+  const sceneRef        = useRef(null)
+  const botCeilStoreRef = useRef([])
+  const [submitCount, setSubmitCount] = useState(0)
   const { chars, pushCount, addText, isFlowing, isAnimating } = useNoroshi()
+
+  // sceneW computed early so useEncounter can receive it as a stable value each render
+  const sceneW = sceneRef.current?.offsetWidth ?? viewportW
+  const { bot } = useEncounter({ submitCount, userX: sceneW * 0.70, sceneW })
 
   useEffect(() => {
     // Capture layout height once. Only window.resize (orientation change) updates width.
@@ -55,14 +62,22 @@ export default function WalkingScene({ color, onHome }) {
     const trimmed = text.trim()
     if (!trimmed) return
     addText(trimmed)
+    setSubmitCount(c => c + 1)
   }
 
   // ── Position calculation ──────────────────────────────────────────────────
-  const sceneW       = sceneRef.current?.offsetWidth  ?? viewportW
-  const sceneH       = sceneRef.current?.offsetHeight ?? viewH
+  const sceneH = sceneRef.current?.offsetHeight ?? viewH
   const yarnlyX      = sceneW * 0.70
   const headY        = sceneH - GROUND_H - YARNLY_H
   const threadStartY = headY - CHAR_GAP
+
+  // Bot noroshi: visible chars above bot's head in canvas coordinate space
+  const botVisChars = bot ? Array.from({ length: bot.revealCount }, (_, i) => ({
+    id: `bn-${i}`,
+    char: bot.text[i],
+    x: bot.x + Math.sin(i * 0.45) * 20,
+    y: headY - CHAR_GAP - (bot.revealCount - 1 - i) * CHAR_SP,
+  })).filter(c => c.y >= CEILING_Y) : []
 
   const lineLen = Math.max(10, Math.floor((sceneW - CEIL_PAD) / CHAR_PX))
 
@@ -79,11 +94,21 @@ export default function WalkingScene({ color, onHome }) {
   const visChars  = posChars.filter(c => c.y >= CEILING_Y)
   const ceilChars = posChars.filter(c => c.y < CEILING_Y)
 
-  // Ceiling: show last CEIL_LINES lines, size area to actual line count
-  const allCeilStr     = ceilChars.map(c => c.char).join('')
+  // Bot ceiling chars: lock entryX at the frame the char first enters ceiling
+  const botStepsToReach = headY > 0 ? Math.ceil((headY - CHAR_GAP - CEILING_Y) / CHAR_SP) : 999
+  const botCeilCount = bot ? Math.max(0, bot.revealCount - botStepsToReach) : 0
+  if (bot && botCeilCount > botCeilStoreRef.current.length) {
+    for (let i = botCeilStoreRef.current.length; i < botCeilCount; i++) {
+      botCeilStoreRef.current.push({ id: `bc-${i}`, char: bot.text[i], color: bot.color, x: bot.x })
+    }
+  }
+
+  // Ceiling: merge user + bot chars, show last CEIL_LINES lines
+  const allCeilInputChars = [...ceilChars, ...botCeilStoreRef.current]
+  const allCeilStr     = allCeilInputChars.map(c => c.char).join('')
   const completedLines = Math.floor(allCeilStr.length / lineLen)
   const startLine      = Math.max(0, completedLines - (CEIL_LINES - 1))
-  const displayChars   = ceilChars.slice(startLine * lineLen)
+  const displayChars   = allCeilInputChars.slice(startLine * lineLen)
   const ceilDisplayChars = displayChars.map((c, i) => ({
     ...c,
     entryX:  c.x,
@@ -115,11 +140,13 @@ export default function WalkingScene({ color, onHome }) {
     return pts.join(' ')
   })()
 
-  // Walking: legs move during entrance AND while real chars are flowing
-  const yarnlyAction = (!entered || isAnimating) ? 'walk' : 'idle'
-  const animClass    = !entered
-    ? styles.entering
-    : isAnimating ? styles.walking : ''
+  // bow takes priority; else walk during entrance/animation
+  const yarnlyAction = bot?.userIsBowing ? 'bow'
+    : (!entered || isAnimating) ? 'walk'
+    : 'idle'
+  const animClass = !entered ? styles.entering
+    : (isAnimating && !bot?.userIsBowing) ? styles.walking
+    : ''
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -128,7 +155,7 @@ export default function WalkingScene({ color, onHome }) {
 
       <div ref={sceneRef} className={styles.canvas}>
         <div
-          className={`${styles.bgScroll}${(!entered || isAnimating) ? ` ${styles.bgScrolling}` : ''}`}
+          className={`${styles.bgScroll}${(!entered || isAnimating || !!bot) ? ` ${styles.bgScrolling}` : ''}`}
           style={{ backgroundImage: `url(${bgImg})` }}
         />
         <HomeButton onHome={onHome} color={color} />
@@ -154,6 +181,20 @@ export default function WalkingScene({ color, onHome }) {
         )}
 
         <NoroshiCanvas chars={visChars} color={color} />
+
+        {/* Bot Yarnly — enters from left, walks right (mirrored), renders behind user */}
+        {bot && (
+          <>
+            <NoroshiCanvas chars={botVisChars} color={bot.color} />
+            <div style={{
+              position: 'absolute', bottom: GROUND_H,
+              left: bot.x - YARNLY_HALF,
+              transform: 'scaleX(-1)',
+            }}>
+              <Yarnly color={bot.color} action={bot.isBowing ? 'bow' : 'walk'} size={YARNLY_H} />
+            </div>
+          </>
+        )}
 
         <div
           className={`${styles.character} ${animClass}`}
