@@ -33,8 +33,10 @@ export default function WalkingScene({ color, onHome }) {
   const [viewH, setViewH] = useState(
     typeof window !== 'undefined' ? window.innerHeight : 800
   )
-  const sceneRef        = useRef(null)
-  const botCeilStoreRef = useRef([])
+  const sceneRef           = useRef(null)
+  const botCeilStoreRef    = useRef([])
+  const botBaseSortKeyRef  = useRef(null)   // max user idx at encounter trigger
+  const encounterAnchorRef = useRef(-1)
   const [submitCount, setSubmitCount] = useState(0)
   const { chars, pushCount, addText, isFlowing, isAnimating } = useNoroshi()
 
@@ -58,6 +60,14 @@ export default function WalkingScene({ color, onHome }) {
     return () => clearTimeout(t)
   }, [])
 
+  // Capture the max user char idx at the moment of 2nd submission.
+  // Bot chars are inserted between this anchor and subsequent user chars.
+  useEffect(() => {
+    if (submitCount === 2) {
+      encounterAnchorRef.current = chars.reduce((m, c) => Math.max(m, c.idx), -1)
+    }
+  }, [submitCount])  // eslint-disable-line react-hooks/exhaustive-deps
+
   function handleSubmit(text) {
     const trimmed = text.trim()
     if (!trimmed) return
@@ -72,11 +82,12 @@ export default function WalkingScene({ color, onHome }) {
   const threadStartY = headY - CHAR_GAP
 
   // Bot noroshi: visible chars above bot's head in canvas coordinate space
+  // totalSteps (uncapped) keeps chars rising after text ends, mirroring user virtualSteps
   const botVisChars = bot ? Array.from({ length: bot.revealCount }, (_, i) => ({
     id: `bn-${i}`,
     char: bot.text[i],
     x: bot.x + Math.sin(i * 0.45) * 20,
-    y: headY - CHAR_GAP - (bot.revealCount - 1 - i) * CHAR_SP,
+    y: headY - CHAR_GAP - (bot.totalSteps - 1 - i) * CHAR_SP,
   })).filter(c => c.y >= CEILING_Y) : []
 
   const lineLen = Math.max(10, Math.floor((sceneW - CEIL_PAD) / CHAR_PX))
@@ -96,15 +107,27 @@ export default function WalkingScene({ color, onHome }) {
 
   // Bot ceiling chars: lock entryX at the frame the char first enters ceiling
   const botStepsToReach = headY > 0 ? Math.ceil((headY - CHAR_GAP - CEILING_Y) / CHAR_SP) : 999
-  const botCeilCount = bot ? Math.max(0, bot.revealCount - botStepsToReach) : 0
+  const botCeilCount = bot
+    ? Math.min(bot.text.length, Math.max(0, bot.totalSteps - botStepsToReach))
+    : 0
   if (bot && botCeilCount > botCeilStoreRef.current.length) {
+    // Lock sort base on first bot char: all bot chars fit in (anchor, anchor+1)
+    if (botCeilStoreRef.current.length === 0) {
+      botBaseSortKeyRef.current = encounterAnchorRef.current
+    }
+    const base = botBaseSortKeyRef.current ?? 0
+    const N    = bot.text.length
     for (let i = botCeilStoreRef.current.length; i < botCeilCount; i++) {
-      botCeilStoreRef.current.push({ id: `bc-${i}`, char: bot.text[i], color: bot.color, x: bot.x })
+      botCeilStoreRef.current.push({
+        id: `bc-${i}`, char: bot.text[i], color: bot.color, x: bot.x,
+        sortKey: base + (i + 1) / (N + 1),
+      })
     }
   }
 
-  // Ceiling: merge user + bot chars, show last CEIL_LINES lines
+  // Ceiling: merge user (sortKey=idx) + bot (sortKey=fractional anchor) in chronological order
   const allCeilInputChars = [...ceilChars, ...botCeilStoreRef.current]
+    .sort((a, b) => (a.sortKey ?? a.idx) - (b.sortKey ?? b.idx))
   const allCeilStr     = allCeilInputChars.map(c => c.char).join('')
   const completedLines = Math.floor(allCeilStr.length / lineLen)
   const startLine      = Math.max(0, completedLines - (CEIL_LINES - 1))

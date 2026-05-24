@@ -45,10 +45,8 @@ export function useEncounter({ submitCount, userX, sceneW }) {
     const elapsed = now - s.startTime
     const newX    = s.startX + elapsed * BOT_SPEED
 
-    const revealCount = Math.min(
-      Math.floor(elapsed / FLOW_SPEED_MS),
-      TUTORIAL_BOTS.mumble.text.length
-    )
+    const totalSteps  = Math.floor(elapsed / FLOW_SPEED_MS)
+    const revealCount = Math.min(totalSteps, TUTORIAL_BOTS.mumble.text.length)
 
     const uX = userX || window.innerWidth * 0.7
     if (!s.bowTriggered && Math.abs(newX - uX) < BOW_DIST) {
@@ -63,7 +61,7 @@ export function useEncounter({ submitCount, userX, sceneW }) {
       return
     }
 
-    setBot({ color: TUTORIAL_BOTS.mumble.color, text: TUTORIAL_BOTS.mumble.text, x: newX, revealCount, isBowing, userIsBowing: isBowing })
+    setBot({ color: TUTORIAL_BOTS.mumble.color, text: TUTORIAL_BOTS.mumble.text, x: newX, revealCount, totalSteps, isBowing, userIsBowing: isBowing })
     s.raf = requestAnimationFrame(tick)
   }
 
