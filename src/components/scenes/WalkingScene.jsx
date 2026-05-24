@@ -108,7 +108,7 @@ export default function WalkingScene({ color, onHome }) {
     if (recentChars.length === 0) return ''
     const pts = [`M ${yarnlyX.toFixed(1)} ${headY}`]
     recentChars.forEach(c => {
-      const ty = Math.max(c.y + FONT_HALF, CEILING_Y)
+      const ty = Math.max(c.y + FONT_HALF, -(CEIL_LINE_H + CEIL_FADE_PAD - FONT_HALF))
       pts.push(`L ${c.x.toFixed(1)} ${ty.toFixed(1)}`)
     })
     return pts.join(' ')
@@ -149,8 +149,6 @@ export default function WalkingScene({ color, onHome }) {
         )}
 
         <NoroshiCanvas chars={visChars} color={color} />
-
-        <div className={styles.ground} />
 
         <div
           className={`${styles.character} ${animClass}`}

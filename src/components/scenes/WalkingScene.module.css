@@ -14,15 +14,6 @@
   overflow: hidden;
 }
 
-.ground {
-  position: absolute;
-  bottom: 24px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.07);
-}
-
 /* left is set via inline style; transition smooths the walk-left movement */
 .character {
   position: absolute;
