@@ -18,17 +18,22 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-size: 1080px auto;
+  background-size: 100vw auto;
   background-repeat: repeat-x;
   background-position-y: bottom;
   opacity: 0.13;
   animation: scrollBg 40s linear infinite;
+  animation-play-state: paused;
   pointer-events: none;
+}
+
+.bgScrolling {
+  animation-play-state: running;
 }
 
 @keyframes scrollBg {
   from { background-position-x: 0; }
-  to   { background-position-x: -1080px; }
+  to   { background-position-x: -100vw; }
 }
 
 /* left is set via inline style; transition smooths the walk-left movement */

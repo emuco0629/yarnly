@@ -128,7 +128,7 @@ export default function WalkingScene({ color, onHome }) {
 
       <div ref={sceneRef} className={styles.canvas}>
         <div
-          className={styles.bgScroll}
+          className={`${styles.bgScroll}${(!entered || isFlowing) ? ` ${styles.bgScrolling}` : ''}`}
           style={{ backgroundImage: `url(${bgImg})` }}
         />
         <HomeButton onHome={onHome} color={color} />
