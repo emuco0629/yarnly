@@ -5,14 +5,17 @@ import { FLOW_SPEED_MS } from '../constants/config'
 // The queue only carries timing entries ({at: ms}) that increment pushCount.
 // If the RAF is throttled/paused, chars already exist in state and reappear correctly on resume.
 export function useNoroshi() {
-  const [chars,     setChars]     = useState([])
-  const [pushCount, setPushCount] = useState(0)
-  const [isFlowing, setIsFlowing] = useState(false)
+  const [chars,       setChars]       = useState([])
+  const [pushCount,   setPushCount]   = useState(0)
+  const [isFlowing,   setIsFlowing]   = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
 
   const s = useRef({
     nextId:           0,
     globalIdx:        0,
     currentPushCount: 0,  // mutable shadow of pushCount — updated synchronously in tick
+    textEndCount:     0,  // pushCount at which last real char is displayed
+    animatingStopped: true,
     raf:              null,
     queue:            [],   // { at: ms } — only timing, no char data
     queueEnd:         Date.now(),
@@ -29,6 +32,12 @@ export function useNoroshi() {
         s.queue = s.queue.slice(i)
         s.currentPushCount += i
         setPushCount(prev => prev + i)
+
+        // Stop walking the moment the last real char is revealed
+        if (!s.animatingStopped && s.currentPushCount >= s.textEndCount) {
+          s.animatingStopped = true
+          setIsAnimating(false)
+        }
       }
 
       if (s.queue.length > 0) {
@@ -83,6 +92,8 @@ export function useNoroshi() {
     const stepsNeeded  = Math.ceil((window.screen.height - 224) / 20)
     const virtualSteps = Math.max(stepsNeeded + 8, 10)
     const textEndAt    = startAt + n * FLOW_SPEED_MS
+    s.textEndCount     = startIdx + n
+    s.animatingStopped = false
 
     const newItems = []
     for (let i = 0; i < n; i++)            newItems.push({ at: startAt + i * FLOW_SPEED_MS })
@@ -91,9 +102,10 @@ export function useNoroshi() {
     s.queue    = [...s.queue, ...newItems]
     s.queueEnd = textEndAt + virtualSteps * FLOW_SPEED_MS
 
+    setIsAnimating(true)
     setIsFlowing(true)
     s.raf = requestAnimationFrame(s.tick)
   }
 
-  return { chars, pushCount, addText, isFlowing }
+  return { chars, pushCount, addText, isFlowing, isAnimating }
 }

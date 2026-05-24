@@ -33,7 +33,7 @@ export default function WalkingScene({ color, onHome }) {
     typeof window !== 'undefined' ? window.innerHeight : 800
   )
   const sceneRef = useRef(null)
-  const { chars, pushCount, addText, isFlowing } = useNoroshi()
+  const { chars, pushCount, addText, isFlowing, isAnimating } = useNoroshi()
 
   useEffect(() => {
     // Capture layout height once. Only window.resize (orientation change) updates width.
@@ -115,11 +115,11 @@ export default function WalkingScene({ color, onHome }) {
     return pts.join(' ')
   })()
 
-  // Walking: legs move during entrance AND while chars are flowing
-  const yarnlyAction = (!entered || isFlowing) ? 'walk' : 'idle'
+  // Walking: legs move during entrance AND while real chars are flowing
+  const yarnlyAction = (!entered || isAnimating) ? 'walk' : 'idle'
   const animClass    = !entered
     ? styles.entering
-    : isFlowing ? styles.walking : ''
+    : isAnimating ? styles.walking : ''
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -128,7 +128,7 @@ export default function WalkingScene({ color, onHome }) {
 
       <div ref={sceneRef} className={styles.canvas}>
         <div
-          className={`${styles.bgScroll}${(!entered || isFlowing) ? ` ${styles.bgScrolling}` : ''}`}
+          className={`${styles.bgScroll}${(!entered || isAnimating) ? ` ${styles.bgScrolling}` : ''}`}
           style={{ backgroundImage: `url(${bgImg})` }}
         />
         <HomeButton onHome={onHome} color={color} />
