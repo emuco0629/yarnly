@@ -14,6 +14,23 @@
   overflow: hidden;
 }
 
+.bgScroll {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: 1080px auto;
+  background-repeat: repeat-x;
+  background-position-y: bottom;
+  opacity: 0.13;
+  animation: scrollBg 40s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scrollBg {
+  from { background-position-x: 0; }
+  to   { background-position-x: -1080px; }
+}
+
 /* left is set via inline style; transition smooths the walk-left movement */
 .character {
   position: absolute;

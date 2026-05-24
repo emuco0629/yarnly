@@ -6,6 +6,7 @@ import HomeButton from '../ui/HomeButton'
 import InputForm from '../ui/InputForm'
 import { useNoroshi } from '../../hooks/useNoroshi'
 import styles from './WalkingScene.module.css'
+import bgImg from '../../assets/yarnlyback1.png'
 
 // Layout constants (px)
 const GROUND_H      = 24   // bottom margin within canvas area (InputForm is now a separate flex row)
@@ -126,6 +127,10 @@ export default function WalkingScene({ color, onHome }) {
       <CeilingText chars={ceilDisplayChars} color={color} height={ceilH} />
 
       <div ref={sceneRef} className={styles.canvas}>
+        <div
+          className={styles.bgScroll}
+          style={{ backgroundImage: `url(${bgImg})` }}
+        />
         <HomeButton onHome={onHome} color={color} />
 
         {/* Thread: head → centers of last 3–4 chars, straight lines only */}
