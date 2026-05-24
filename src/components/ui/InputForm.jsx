@@ -53,11 +53,7 @@ export default function InputForm({ onSubmit }) {
   }
 
   function onKeyDown(e) {
-    if (e.key === 'Enter' && !isComposing) {
-      if (e.shiftKey) return  // let browser insert newline
-      e.preventDefault()
-      submit()
-    }
+    // Enter always inserts a newline; submit only via button
   }
 
   return (
@@ -79,7 +75,7 @@ export default function InputForm({ onSubmit }) {
           autoCapitalize="off"
           spellCheck={false}
           inputMode="text"
-          enterKeyHint="send"
+          enterKeyHint="enter"
         />
         <button
           className={styles.newline}
